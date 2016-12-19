@@ -1,0 +1,112 @@
+OOFEM:
+
+Components:
+
+Simulation manager:
+	main() entry point
+	CLI manager
+	Call input parser
+	Call preprossor
+	Call solver
+	Call postprocessor
+	Call GUI
+	
+	
+Model library:
+	Object oriented hiearcy of element types
+		Element
+			1D
+				BAR
+					TRUSS
+				BEAM
+					FEAME
+			2D
+				PLANE MEMBRANE
+					PLANE STRESS
+					PLANE STRAIN
+				PLATE
+					KIRCHOFF
+					REISSNER-MINDLIN
+				SHELL
+					FLAT					
+			3D
+				SOLID
+				AXISSYMMETRIC
+				
+		Different variations of each
+			Quadrilaterals
+			Triangular
+			Serendipity
+		    Ways of dealing with shear locking, hour glassing asf.
+	Eech element type contains
+		Function to return element stiffness matrix from element details input
+		Function to integrate loads over element and distribute to it's nodes
+		How to transform to global coordinates
+		Calculate stress, strain, bending moment from node displacements
+	Macro elements
+	
+Input parser:
+	XML format
+	TinyXML -> DOM
+	Input file sections:
+		Simulation options
+		Element types
+		Material types
+		Topology
+		BC's
+	Macro elements for rapid mesh generation
+	Look up element types in model library
+	Return Model object
+	
+Preprocessor:
+	Prepare the data in the Model object for submission to solver
+	Calculate element stiffness matrices for each element
+	Assemble into global stiffness matrix
+	Distribute loads to nodes
+	A lot of the work will be on the element models them selfes
+	Return linear system to solver (preferrably sparse)
+	Show graphical preview before continuing to solver?
+	
+Solver
+	Purely mathematical operations, completely abstracted from the structural analysis
+	Preconditioning
+		Ill conditioned?
+		Change system to be able to solve
+	System solver
+		Iterative
+			Gauss-Seidel
+			Jacobi
+			Conjugate gradient
+		Factorizations
+			LU decompositions
+				Doolittle
+				Kraut
+				Cholesky
+			QR factorization
+		Direct
+			Gauss-Jordan
+				Partial pivoting
+		Use linear algebra library
+			Eigen?
+			Boost?
+			BLAS, LAPACK wrapper?
+			
+Postprocessor
+	Based on simulation options in the input file
+	Stress
+	Strain
+	Deflection
+	Maximum values
+	Write output file
+	Plot results
+	
+GUI
+	Display structure and analysis results
+	Camera controller
+	Stress contours
+
+Utility library
+	Often used functions
+	Shape functions
+	Gaussian integration points and weights
+

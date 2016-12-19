@@ -1,0 +1,4 @@
+Level 1:
+	truss elements
+	hard coded input
+	
