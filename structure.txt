@@ -42,7 +42,7 @@ Model library:
 		Function to return element stiffness matrix from element details input
 		Function to integrate loads over element and distribute to it's nodes
 		How to transform to global coordinates
-		Calculate stress, strain, bending moment from node displacements
+		
 	Macro elements
 	
 Input parser:
