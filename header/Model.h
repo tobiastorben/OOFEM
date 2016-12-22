@@ -1,6 +1,11 @@
+#ifndef MODEL_H
+#define MODEL_H
+
 #include <Eigen\Core>
 #include "Element.h"
 #include <vector>
+#include <iostream>
+#include "utilities.h"
 using namespace Eigen;
 class Model {
 
@@ -18,17 +23,24 @@ private:
 	int nDof;
 
 	MatrixXd Kglob;
+	MatrixXd constrainedKglob;
 	VectorXd b;
+	VectorXd u;
 
 
 public:
 	Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Element* someEtypes, VectorXi someEtable, MatrixXd loads, MatrixXi someSupports);
 	void calcLoadVector();
-	VectorXd solve(MatrixXd K, VectorXd b);
+	void solveSystem();
 	MatrixXd getElementCoords(int eNum);//Return matrix where each row contains the coordanate of a node
 	void assembleGlobalSystem();
+	void applyBCs();
+	VectorXd getU();
+	void printModel();
 
 	
 
 
 };
+
+#endif

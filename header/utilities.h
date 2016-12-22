@@ -1,6 +1,13 @@
+#ifndef UTILITIES_H
+#define UTILITIES_H
+
 #include <Eigen/Core>
+#include <vector>
 
 using namespace Eigen;
 
-MatrixXd getCoords(int eNum, MatrixXd topology, MatrixXd nodes);
 Vector3d calcUnitVec(MatrixXd coords);
+VectorXi stdToEigenVec(std::vector<int> stdVec);
+VectorXd stdToEigenVec(std::vector<double> stdVec);
+
+#endif
