@@ -4,14 +4,16 @@
 
 using namespace Eigen;
 
-Truss::Truss(double someEA, double someL) {
-	EA = someEA;
-	L = someL;
-	rotDof = false;
+const bool Truss::hasRotDof = false;
+
+Truss::Truss(double someE, double someA) {
+	E = someE;
+	A = someA;
 }
 
 
 MatrixXd Truss::calcNodalLoads(MatrixXd coords, int dof, double intensity) {
+	double L = calcL(coords);
 	double force = 0.5*L*intensity;
 	VectorXd forceVec = force*calcUnitVec(coords);
 	MatrixXd nodalLoads(2, 3);
@@ -21,7 +23,7 @@ MatrixXd Truss::calcNodalLoads(MatrixXd coords, int dof, double intensity) {
 
 void Truss::assembleToGlobal(std::vector<int> Dofs, MatrixXd coords, MatrixXd& Kglob) {
 	MatrixXd T(2, 6);
-
+	double L = calcL(coords);
 	double cx = (coords(1, 0) - coords(0, 0)) / L;
 	double cy = (coords(1, 1) - coords(0, 1)) / L;
 	double cz = (coords(1, 2) - coords(0, 2)) / L;
@@ -30,7 +32,7 @@ void Truss::assembleToGlobal(std::vector<int> Dofs, MatrixXd coords, MatrixXd& K
 
 	MatrixXd Kaxial(2, 2);
 	Kaxial << 1, -1, -1, 1;
-	MatrixXd K = (EA/L)*T.transpose()*Kaxial*T;
+	MatrixXd K = (E*A/L)*T.transpose()*Kaxial*T;
 	int globDof;
 
 	for (int i = 0; i < 2; i++) {
@@ -42,3 +44,5 @@ void Truss::assembleToGlobal(std::vector<int> Dofs, MatrixXd coords, MatrixXd& K
 		}
 	}
 }
+
+

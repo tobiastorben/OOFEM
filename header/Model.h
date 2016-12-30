@@ -21,6 +21,7 @@ private:
 	int nElem;
 	int nNodes;
 	int nDof;
+	int dimensionality;
 
 	MatrixXd Kglob;
 	MatrixXd constrainedKglob;
@@ -29,7 +30,7 @@ private:
 
 
 public:
-	Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Element* someEtypes, VectorXi someEtable, MatrixXd loads, MatrixXi someSupports);
+	Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Element* someEtypes, VectorXi someEtable, MatrixXd loads, MatrixXi someSupports, int dim);
 	void calcLoadVector();
 	void solveSystem();
 	MatrixXd getElementCoords(int eNum);//Return matrix where each row contains the coordanate of a node
@@ -37,6 +38,10 @@ public:
 	void applyBCs();
 	VectorXd getU();
 	void printModel();
+	VectorXd calcReactions();
+	VectorXd calcError();
+	void reduceSystem();
+	void applyDimensionality();
 
 	
 

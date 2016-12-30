@@ -7,16 +7,16 @@
 
 class Truss : public Element {
 	private :
-		double EA;
-		double L;
+		double E;
+		double A;
 		
 	public:
-		Truss(double someEA, double someL);
-		//void calcStiffness();
+		Truss(double someE, double someA);
 		VectorXd calcStress(VectorXd u);
 		VectorXd calcStrain(VectorXd u);
 		void assembleToGlobal(std::vector<int> dofs, MatrixXd coords, MatrixXd& Kglob);
 		MatrixXd calcNodalLoads(MatrixXd coords, int dof, double intensity);
+		
 };
 
 #endif

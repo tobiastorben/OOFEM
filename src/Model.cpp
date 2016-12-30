@@ -35,13 +35,14 @@ void Model::calcLoadVector() {
 
 }
 
-Model::Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Element* someEtypes, VectorXi someEtable, MatrixXd someLoads, MatrixXi someSupports) {
+Model::Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Element* someEtypes, VectorXi someEtable, MatrixXd someLoads, MatrixXi someSupports, int dim) {
 	this->topology = someTopology;
 	this->nodes = someNodes;
 	this->elementTypes = someEtypes;
 	this->elementTable = someEtable;
 	this->loads = someLoads;
 	this->supports = someSupports;
+	this->dimensionality = dim;
 
 	this->nElem = topology.size();
 	this->nNodes = nodes.rows();
@@ -51,7 +52,7 @@ Model::Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Ele
 
 	for (int i = 0; i < nElem; i++) {
 		for (int j = 0; j < topology[i].size(); j++){
-			if (elementTypes[elementTable(i)].hasRotDof()) rotNodes[i] = true;
+			if (elementTypes[elementTable(i)].hasRotDof) rotNodes[i] = true;
 		}
 	}
 
@@ -75,7 +76,9 @@ void Model::assembleGlobalSystem() {
 	for (int i = 0; i < nElem; i++) {
 		eNodes = topology[i];
 		n = eNodes.size();
-		for (int j = 0; j < n; j++) dofs.push_back(nodeIndices(eNodes[j]));
+		for (int j = 0; j < n; j++) {
+			dofs.push_back(nodeIndices(eNodes[j]));
+		}
 		coords = getElementCoords(i);
 		elementTypes[elementTable(i)].assembleToGlobal(dofs, coords, Kglob);
 		dofs.clear();
@@ -108,7 +111,16 @@ void Model::applyBCs() {
 }
 
 void Model::solveSystem() {
-	this->u = constrainedKglob.colPivHouseholderQr().solve(b);
+	auto QRdecomposition = constrainedKglob.colPivHouseholderQr();
+	if (QRdecomposition.isInvertible()) {
+		this-> u = QRdecomposition.solve(b);
+	}
+
+	else {
+		std::cerr << "ERROR: SYSTEM IS NOT INVERTIBLE! ABORTING" << std::endl;
+		std::cin.ignore();
+		abort();
+	}
 }
 
 VectorXd Model::getU() { return u; }
@@ -119,4 +131,44 @@ void Model::printModel() {
 	std::cout << "\n\nStiffness matrix\n\n" << Kglob << std::endl;
 	std::cout << "\n\nConstrained stiffness matrix\n\n" << constrainedKglob << std::endl;
 	std::cin.ignore();
+}
+
+VectorXd Model::calcReactions() {
+	return Kglob*u - b;
+}
+
+VectorXd Model::calcError() {
+	return constrainedKglob*u - b;
+}
+
+void Model::reduceSystem() {
+
+	for (int i = 0; i < nDof; i++) {
+		if (constrainedKglob.row(i).isZero() && constrainedKglob.col(i).isZero()) {
+			constrainedKglob(i, i) = 1;
+		}
+	}
+
+}
+
+void Model::applyDimensionality() {//TODO : Take rotdof into account
+	for (int i = 0; i < nDof;) {
+		if (dimensionality == 2) {
+			removeRow(Kglob, i+2);
+			removeColumn(Kglob, i+2);
+			removeRow(b, i + 2);
+			nDof -= 1;
+			i += 2;
+		}
+		if (dimensionality == 1) {
+			removeRow(Kglob, i + 1);
+			removeColumn(Kglob, i + 1);
+			removeRow(b, i + 1);
+			removeRow(Kglob, i + 2);
+			removeColumn(Kglob, i + 2);
+			removeRow(b, i + 2);
+			nDof -= 2;
+			i += 1;
+		}
+	}
 }
