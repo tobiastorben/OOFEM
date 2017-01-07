@@ -14,7 +14,7 @@ void Model::calcLoadVector() {
 
 	for (int i = 0; i < loads.rows(); i++) {
 		if (loads(i,0) == 0) {
-			dof = nodeIndices(loads(i, 1)) + loads(i, 2);
+			dof = 6*loads(i, 1) + loads(i, 2);
 			b(dof) = loads(i, 3);
 		}
 		else {
@@ -25,7 +25,7 @@ void Model::calcLoadVector() {
 			nodalLoads = elementTypes[eType].calcNodalLoads(coords, loads(i,2), loads(i,3));
 			
 			for (int j = 0; j < nodalLoads.rows(); j++) {
-				dof = nodeIndices(nodes[j]);
+				dof = 6*nodes[j];
 				for (int k = 0; k < nodalLoads.cols(); k++) {
 					b(dof + k) = nodalLoads(j, k);
 				}
@@ -47,41 +47,18 @@ Model::Model(std::vector<std::vector<int>> someTopology, MatrixXd someNodes, Ele
 	this->nElem = topology.size();
 	this->nNodes = nodes.rows();
 
-	this->rotNodes = new bool[nNodes];
-	for (int i = 0; i < nNodes; i++) rotNodes[i] = false;
-
-	for (int i = 0; i < nElem; i++) {
-		for (int j = 0; j < topology[i].size(); j++){
-			if (elementTypes[elementTable(i)].hasRotDof) rotNodes[i] = true;
-		}
-	}
-
-	this->nodeIndices = VectorXi(nNodes);
-
-	int index = 0;
-	for (int i = 0; i < nNodes; i++) {
-		nodeIndices(i) = index;
-		if (rotNodes[i]) index += 6;
-		else index += 3;
-	}
-
-	this->nDof  = index;
+	this->nDof = 6 * nNodes;
 }
 
 void Model::assembleGlobalSystem() {
 	this->Kglob = MatrixXd::Zero(nDof, nDof);
-	std::vector<int> dofs, eNodes;
+	std::vector<int> eNodes;
 	MatrixXd coords;
 	int n;
 	for (int i = 0; i < nElem; i++) {
 		eNodes = topology[i];
-		n = eNodes.size();
-		for (int j = 0; j < n; j++) {
-			dofs.push_back(nodeIndices(eNodes[j]));
-		}
 		coords = getElementCoords(i);
-		elementTypes[elementTable(i)].assembleToGlobal(dofs, coords, Kglob);
-		dofs.clear();
+		elementTypes[elementTable(i)].assembleToGlobal(eNodes, coords, Kglob);
 	}
 }
 
@@ -99,21 +76,23 @@ MatrixXd Model::getElementCoords(int eNum) {
 
 void Model::applyBCs() {
 	this->constrainedKglob = Kglob;
+	this->constrainedB = b;
 	int dof;
 	for (int i = 0; i < supports.rows(); i++) {
-		dof = nodeIndices(supports(i, 0)) + supports(i, 1);
+		dof = 6*supports(i, 0) + supports(i, 1);
 		for (int j = 0; j < nDof; j++) {
 			constrainedKglob(dof, j) = 0;
 			constrainedKglob(j, dof) = 0;
 		}
 		constrainedKglob(dof, dof) = 1;
+		constrainedB(dof) = 0;
 	}
 }
 
 void Model::solveSystem() {
 	auto QRdecomposition = constrainedKglob.colPivHouseholderQr();
-	if (QRdecomposition.isInvertible()) {
-		this-> u = QRdecomposition.solve(b);
+	if (true){//QRdecomposition.isInvertible()) {
+		this-> u = QRdecomposition.solve(constrainedB);
 	}
 
 	else {

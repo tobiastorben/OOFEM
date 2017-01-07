@@ -21,7 +21,7 @@ MatrixXd Truss::calcNodalLoads(MatrixXd coords, int dof, double intensity) {
 	return nodalLoads;
 }
 
-void Truss::assembleToGlobal(std::vector<int> Dofs, MatrixXd coords, MatrixXd& Kglob) {
+void Truss::assembleToGlobal(std::vector<int> eNodes, MatrixXd coords, MatrixXd& Kglob) {
 	MatrixXd T(2, 6);
 	double L = calcL(coords);
 	double cx = (coords(1, 0) - coords(0, 0)) / L;
@@ -33,13 +33,11 @@ void Truss::assembleToGlobal(std::vector<int> Dofs, MatrixXd coords, MatrixXd& K
 	MatrixXd Kaxial(2, 2);
 	Kaxial << 1, -1, -1, 1;
 	MatrixXd K = (E*A/L)*T.transpose()*Kaxial*T;
-	int globDof;
-
 	for (int i = 0; i < 2; i++) {
 		for (int j = 0; j < 3; j++) {
 			for (int k = 0; k < 2; k++) {
 				for (int l = 0; l < 3; l++)
-					Kglob(Dofs[i] + j, Dofs[k] + l) = Kglob(Dofs[i] + j, Dofs[k] + l) + K(3 * i + j, 3 * k + l);
+					Kglob(6 * eNodes[i] + j, 6 * eNodes[k] + l) = Kglob(6 * eNodes[i] + j, 6 * eNodes[k] + l) + K(3 * i + j, 3 * k + l);
 			}
 		}
 	}

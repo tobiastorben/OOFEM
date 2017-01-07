@@ -14,7 +14,7 @@ class Truss : public Element {
 		Truss(double someE, double someA);
 		VectorXd calcStress(VectorXd u);
 		VectorXd calcStrain(VectorXd u);
-		void assembleToGlobal(std::vector<int> dofs, MatrixXd coords, MatrixXd& Kglob);
+		void assembleToGlobal(std::vector<int> eNodes, MatrixXd coords, MatrixXd& Kglob);
 		MatrixXd calcNodalLoads(MatrixXd coords, int dof, double intensity);
 		
 };

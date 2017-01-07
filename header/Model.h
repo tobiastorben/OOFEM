@@ -16,8 +16,6 @@ private:
 	std::vector<std::vector<int>> topology;//Each row contains the nodes for the corresponding element
 	MatrixXi supports;//Each row contain the node number, and the direction to be fixed [0 = x, 1 = y, 2 = z, 3 = rotX, 4 = rotY, 5 = rotZ]
 	MatrixXd loads;//Each row contains load type: [0 = point load, 1 = uniform loads], node/element, direction [0-5] and intensity [N,Nm,N/m ....]
-	VectorXi nodeIndices;//The index of the first DOF for the node in b/u
-	bool* rotNodes;//True if node has rotational DOF's
 	int nElem;
 	int nNodes;
 	int nDof;
@@ -26,6 +24,7 @@ private:
 	MatrixXd Kglob;
 	MatrixXd constrainedKglob;
 	VectorXd b;
+	VectorXd constrainedB;
 	VectorXd u;
 
 
