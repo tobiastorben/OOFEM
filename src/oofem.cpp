@@ -20,19 +20,19 @@ int main(int argc, char** argv) {
 
 	MatrixXd nodes(11, 3);
 	double h = sqrt(0.5);
-	double w = 1;
+	double w = 1000;
 	nodes << 0, 0, 0, w, 0, 0, 2*w, 0, 0, 3*w, 0, 0, 4*w, 0, 0, 5*w, 0, 0, 6*w, 0, 0, 7*w, 0, 0, 8*w, 0, 0, 9*w, 0, 0, 10*w, 0, 0;
 
 
 	Truss bar(210e3, 0.1);
-	Frame beam(210e9, 0.1, 0.1, 0.1, 0.1, 80e9, 5.0/6);
+	Frame beam(210e9, 0.1, 0.1, 0.1, 80e9, 5.0/6);
 
 	Element* eTypes = &beam;
 
 	VectorXi eTable = VectorXi::Zero(10);
 
 	MatrixXd loads(1, 4);
-	loads << 0, 5, 1, -500;
+	loads << 0, 5, 1, -5;
 
 	MatrixXi supports(6, 2);
 	supports << 0, 0, 0, 1,0,2,0,3,0,4,10, 1;

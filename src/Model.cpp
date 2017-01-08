@@ -91,7 +91,7 @@ void Model::applyBCs() {
 
 void Model::solveSystem() {
 	auto QRdecomposition = constrainedKglob.colPivHouseholderQr();
-	if (true){//QRdecomposition.isInvertible()) {
+	if (QRdecomposition.isInvertible()) {
 		this-> u = QRdecomposition.solve(constrainedB);
 	}
 
