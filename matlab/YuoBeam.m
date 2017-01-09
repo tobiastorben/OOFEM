@@ -1,5 +1,7 @@
+clear all;
 syms  x L  E Iy Iz k G A L u1 v1 w1 u2 v2 w2 f1 t1 ...
-    p1 f2 t2 p2 u3 v3 w3 f3 t3 p3 u(x) v(x) w(x) f(x) t(x) p(x) real
+    p1 f2 t2 p2 u3 v3 w3 f3 t3 p3 u(x) v(x) w(x) f(x) t(x) p(x)...
+    fx fy fz mx my mz real
 
 uvec = [u1, v1, w1, f1, p1, t1, u2, v2, w2, f2, p2, t2]';
 
@@ -41,8 +43,36 @@ D =[ E*A 0 0 0 0 0;
     0 0 0 0 E*Iz 0;
     0 0 0 0 0 E*Iy];
 
+   be(:,i) = int(N.',x,0,L);
+   
 integrand = B.'*D*B;
 
 K = int(integrand,x,0,L);
 
 code = ccode(K);
+for i = 1:length(code)
+   if (code(i) == ']')
+       if (code(i+1) == '[')
+        code(i) = ',';
+        code(i+1) = ' ';
+       else 
+        code(i) = ')';  
+       end;
+   elseif (code(i) == '[')
+       code(i) = '('; 
+   end;
+end;
+
+loadCode = ccode(be);
+for i = 1:length(loadCode)
+   if (loadCode(i) == ']')
+       if (loadCode(i+1) == '[')
+        loadCode(i) = ',';
+        loadCode(i+1) = ' ';
+       else 
+        loadCode(i) = ')';  
+       end;
+   elseif (loadCode(i) == '[')
+       loadCode(i) = '('; 
+   end;
+end;

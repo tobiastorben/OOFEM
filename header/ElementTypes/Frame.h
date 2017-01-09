@@ -11,7 +11,7 @@ public:
 	//VectorXd calcStrain(VectorXd u);
 	void assembleToGlobal(std::vector<int> eNodes, MatrixXd coords, MatrixXd& Kglob);
 	MatrixXd calcNodalLoads(MatrixXd coords, int dof, double intensity);
-
+	MatrixXd calcT(MatrixXd coords);
 private:
 	double E;
 	double A;

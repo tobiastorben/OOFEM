@@ -1,4 +1,6 @@
 #include "utilities.h"
+#include <iostream>
+#include <iomanip>
 
 
 Vector3d calcUnitVec(MatrixXd coords) {
@@ -64,4 +66,29 @@ void removeRow(Eigen::VectorXd& vector, unsigned int rowToRemove)
 	}
 
 	vector = tmp;
+}
+
+void printVecInCols(char* title, VectorXd v) {
+	using namespace std;
+	size_t fieldWidth = 20;
+	int n = v.size();
+	std::cout << title << "\n\n";
+	std::cout << setw(fieldWidth) << left << "X";
+	std::cout << setw(fieldWidth) << left << "Y";
+	std::cout << setw(fieldWidth) << left << "Z";
+	std::cout << setw(fieldWidth) << left << "ROTX";
+	std::cout << setw(fieldWidth) << left << "ROTY";
+	std::cout << setw(fieldWidth) << left << "ROTZ";
+	std::cout << "\n";
+
+	for (int i = 0; i < n; i += 6) {
+		std::cout << setw(fieldWidth) << left << v(i);
+		std::cout << setw(fieldWidth) << left << v(i + 1);
+		std::cout << setw(fieldWidth) << left << v(i + 2);
+		std::cout << setw(fieldWidth) << left << v(i + 3);
+		std::cout << setw(fieldWidth) << left << v(i + 4);
+		std::cout << setw(fieldWidth) << left << v(i + 5);
+		std::cout << "\n";
+	}
+	std::cout << "\n";
 }

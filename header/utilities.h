@@ -4,6 +4,9 @@
 #include <Eigen/Core>
 #include <vector>
 #include <math.h>
+#include <iostream>
+#include <iomanip>
+
 
 using namespace Eigen;
 
@@ -14,5 +17,6 @@ double calcL(MatrixXd coords);
 void removeRow(Eigen::MatrixXd& matrix, unsigned int rowToRemove);
 void removeColumn(Eigen::MatrixXd& matrix, unsigned int colToRemove);
 void removeRow(Eigen::VectorXd& vector, unsigned int rowToRemove);
+void printVecInCols(char* title, VectorXd v);
 
 #endif

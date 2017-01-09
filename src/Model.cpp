@@ -7,10 +7,10 @@ void Model::calcLoadVector() {
 	int dof;
 	int eType;
 	int eNum;
-	VectorXi nodes;
+	std::vector<int> nodes;
 	this->b = VectorXd::Zero(nDof);
 	MatrixXd coords;
-	MatrixXd nodalLoads;//Each row contains the load [x,y,z] for the corresponding node
+	MatrixXd nodalLoads;//Each row contains the load [fx,fy,fz,mx,my,mz] for the corresponding node
 
 	for (int i = 0; i < loads.rows(); i++) {
 		if (loads(i,0) == 0) {
@@ -21,13 +21,13 @@ void Model::calcLoadVector() {
 			eNum = loads(i, 1);
 			coords = this->getElementCoords(eNum);
 			eType = elementTable(eNum);
-			nodes = stdToEigenVec(topology[eNum]);
+			nodes = topology[eNum];
 			nodalLoads = elementTypes[eType].calcNodalLoads(coords, loads(i,2), loads(i,3));
 			
 			for (int j = 0; j < nodalLoads.rows(); j++) {
 				dof = 6*nodes[j];
 				for (int k = 0; k < nodalLoads.cols(); k++) {
-					b(dof + k) = nodalLoads(j, k);
+					b(dof + k) = b(dof+k) + nodalLoads(j, k);
 				}
 			}
 		}
@@ -54,7 +54,7 @@ void Model::assembleGlobalSystem() {
 	this->Kglob = MatrixXd::Zero(nDof, nDof);
 	std::vector<int> eNodes;
 	MatrixXd coords;
-	int n;
+
 	for (int i = 0; i < nElem; i++) {
 		eNodes = topology[i];
 		coords = getElementCoords(i);
@@ -117,7 +117,7 @@ VectorXd Model::calcReactions() {
 }
 
 VectorXd Model::calcError() {
-	return constrainedKglob*u - b;
+	return constrainedKglob*u - constrainedB;
 }
 
 void Model::reduceSystem() {

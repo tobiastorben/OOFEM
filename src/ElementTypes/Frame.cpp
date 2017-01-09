@@ -17,39 +17,9 @@ Frame::Frame(double someE, double someA, double someIy, double someIz, double so
 void Frame::assembleToGlobal(std::vector<int> eNodes, MatrixXd coords, MatrixXd& Kglob) {
 	
 	int globIndI, globIndJ;
+	
 	double L = calcL(coords);
-
-	//Coordinate transformation matrix
-	double lx = (coords(1, 0) - coords(0, 0))/L;
-	double mx = (coords(1, 1) - coords(0, 1))/L;
-	double nx = (coords(1, 2) - coords(0, 2))/L;
-	double Lxy = sqrt(lx*lx + mx*mx);
-
-	MatrixXd R(3, 3);
-
-	if (lx == 0 && mx == 0 && nx == 1) {
-		R << 0, 0, -1,
-			0, 1, 0,
-			1, 0, 0;
-	}
-
-	else if (lx == 0 && mx == 0 && nx == -1) {
-		R << 0, 0, 1,
-			 0, 1, 0,
-			-1, 0, 0;
-	}
-
-	else {
-		R << lx, mx, nx,
-			-mx / Lxy, lx / Lxy, 0,
-			-lx*nx / Lxy, -mx*nx / Lxy, Lxy;
-	}
-
-	MatrixXd T = MatrixXd::Zero(12, 12);
-	T.block(0, 0, 3, 3) = R;
-	T.block(3, 3, 3, 3) = R;
-	T.block(6, 6, 3, 3) = R;
-	T.block(9, 9, 3, 3) = R;
+	MatrixXd T = calcT(coords);
 
 	//Element stiffness matrix in local coordinates
 	MatrixXd K = MatrixXd::Zero(12, 12);
@@ -118,4 +88,76 @@ void Frame::assembleToGlobal(std::vector<int> eNodes, MatrixXd coords, MatrixXd&
 	}
 }
 
-MatrixXd Frame::calcNodalLoads(MatrixXd coords, int dof, double intensity){ return MatrixXd::Zero(1, 3); }
+MatrixXd Frame::calcNodalLoads(MatrixXd coords, int dof, double intensity){ 
+	double L = calcL(coords);
+	MatrixXd be = MatrixXd::Zero(12, 6);
+
+	be(0, 0) = L*(1.0 / 2.0);
+	be(1, 1) = L*(1.0 / 2.0);
+	be(1, 5) = (E*Iy*1.2E1) / (E*Iy*1.2E1 - A*G*(L*L)*k) - 1.0;
+	be(2, 2) = L*(1.0 / 2.0);
+	be(2, 4) = (E*Iz*-1.2E1) / (E*Iz*1.2E1 - A*G*(L*L)*k) + 1.0;
+	be(3, 3) = L*(1.0 / 2.0);
+	be(4, 2) = (L*L)*(-1.0 / 1.2E1);
+	be(4, 4) = (E*Iz*L*6.0) / (E*Iz*1.2E1 - A*G*(L*L)*k);
+	be(5, 1) = (L*L)*(1.0 / 1.2E1);
+	be(5, 5) = (E*Iy*L*6.0) / (E*Iy*1.2E1 - A*G*(L*L)*k);
+	be(6, 0) = L*(1.0 / 2.0);
+	be(7, 1) = L*(1.0 / 2.0);
+	be(7, 5) = (E*Iy*-1.2E1) / (E*Iy*1.2E1 - A*G*(L*L)*k) + 1.0;
+	be(8, 2) = L*(1.0 / 2.0);
+	be(8, 4) = (E*Iz*1.2E1) / (E*Iz*1.2E1 - A*G*(L*L)*k) - 1.0;
+	be(9, 3) = L*(1.0 / 2.0);
+	be(10, 2) = (L*L)*(1.0 / 1.2E1);
+	be(10, 4) = (E*Iz*L*6.0) / (E*Iz*1.2E1 - A*G*(L*L)*k);
+	be(11, 1) = (L*L)*(-1.0 / 1.2E1);
+	be(11, 5) = (E*Iy*L*6.0) / (E*Iy*1.2E1 - A*G*(L*L)*k);
+
+	VectorXd bloc = intensity*be.col(dof);
+	MatrixXd T = calcT(coords);
+	VectorXd bglob = T.transpose()*bloc;
+	MatrixXd nodalLoads(2,6);
+	nodalLoads.row(0) = bglob.head(6);
+	nodalLoads.row(1) = bglob.tail(6);
+	return nodalLoads;
+}
+
+//Calculate the coordane transformation matrix
+MatrixXd Frame::calcT(MatrixXd coords) {
+
+	double L = calcL(coords);
+
+	//Coordinate transformation matrix
+	double lx = (coords(1, 0) - coords(0, 0)) / L;
+	double mx = (coords(1, 1) - coords(0, 1)) / L;
+	double nx = (coords(1, 2) - coords(0, 2)) / L;
+	double Lxy = sqrt(lx*lx + mx*mx);
+
+	MatrixXd R(3, 3);
+
+	if (lx == 0 && mx == 0 && nx == 1) {
+		R << 0, 0, -1,
+			0, 1, 0,
+			1, 0, 0;
+	}
+
+	else if (lx == 0 && mx == 0 && nx == -1) {
+		R << 0, 0, 1,
+			0, 1, 0,
+			-1, 0, 0;
+	}
+
+	else {
+		R << lx, mx, nx,
+			-mx / Lxy, lx / Lxy, 0,
+			-lx*nx / Lxy, -mx*nx / Lxy, Lxy;
+	}
+
+	MatrixXd T = MatrixXd::Zero(12, 12);
+	T.block(0, 0, 3, 3) = R;
+	T.block(3, 3, 3, 3) = R;
+	T.block(6, 6, 3, 3) = R;
+	T.block(9, 9, 3, 3) = R;
+
+	return T;
+}
